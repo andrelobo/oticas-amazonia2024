@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const PurchaseController = require('../controllers/purchaseController');
-const authenticateToken = require('../middlewares/authenticateToken');
+// const authenticateToken = require('../middlewares/authenticateToken');
 
 
 router.post('/',authenticateToken , PurchaseController.createPurchase);
@@ -12,13 +12,13 @@ router.post('/',authenticateToken , PurchaseController.createPurchase);
 router.get('/:id',authenticateToken, PurchaseController.getPurchaseById);
 
 // Rota para atualizar os detalhes de um usuário pelo ID
-router.put('/:id', authenticateToken, PurchaseController.updatePurchaseById);
+router.put('/:id', PurchaseController.updatePurchaseById);
 
 // Rota para excluir um usuário pelo ID
-router.delete('/:id', authenticateToken , PurchaseController.deletePurchaseById);
+router.delete('/:id' , PurchaseController.deletePurchaseById);
 
 // Rota para listar todos os usuários
-router.get('/', authenticateToken , PurchaseController.getAllPurchases);
+router.get('/', PurchaseController.getAllPurchases);
 
 module.exports = router;
 
