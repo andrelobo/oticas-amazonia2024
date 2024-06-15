@@ -1,4 +1,5 @@
 const Client = require('../models/clientModel');
+const Purchase = require('../models/purchaseModel');
 
 const ClientController = {
   async createClient(req, res) {
@@ -91,6 +92,34 @@ const ClientController = {
       res.status(500).json({ error: 'Internal server error' });
     }
   },
+
+  async getClientWithPurchases(req, res) {
+    try {
+      const clientId = req.params.id;
+      if (!clientId) {
+        return res.status(400).json({ error: 'Client ID is required' });
+      }
+
+      const client = await Client.findById(clientId);
+      if (!client) {
+        return res.status(404).json({ message: 'Client not found' });
+      }
+
+      const purchases = await Purchase.find({ client: clientId });
+      if (!purchases) {
+        return res.status(404).json({ message: 'No purchases found for this client' });
+      }
+
+      res.json({
+        client,
+        purchases
+      });
+    } catch (error) {
+      console.error('Error getting client and purchases:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
 };
 
 module.exports = ClientController;
+

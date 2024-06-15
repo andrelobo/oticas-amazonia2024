@@ -17,15 +17,14 @@ const purchaseSchema = new mongoose.Schema({
   },
   purchaseDate: {
     type: Date,
-    required: false,
-    
+    default: Date.now  // Valor padrão
   },
   purchaseStatus: {
     type: Boolean,
     required: false,
     default: false  // Define o padrão como não pago
   }
-});
+}, { timestamps: true }); // Adiciona createdAt e updatedAt automaticamente
 
 const Purchase = mongoose.model('Purchase', purchaseSchema);
 
