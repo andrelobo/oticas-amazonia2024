@@ -22,7 +22,7 @@ router.delete('/:id',  ClientController.deleteClientById);
 // Rota para listar todos os usuários
 router.get('/', ClientController.getAllClients);
 
-router.get('/:clientId', purchaseController.getPurchasesByClientId);
+router.get('/:clientId', ClientController.getClientWithPurchases);
 
 module.exports = router;
 
