@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const ClientController = require('../controllers/clientController');
+const purchaseController = require('../controllers/purchaseController');
+
 // const authenticateToken = require('../middlewares/authenticateToken');
 
 // Rota para criar um novo cliente
