@@ -81,6 +81,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/purchases', purchaseRoutes);
 
 
+
 // Rota para solicitar redefinição de senha
 app.post('/api/reset-password', async (req, res) => {
     // Verificar se a requisição tem um corpo válido
