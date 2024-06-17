@@ -119,6 +119,8 @@ const ClientController = {
       res.status(500).json({ error: 'Internal server error' });
     }
   },
+
+
 };
 
 module.exports = ClientController;

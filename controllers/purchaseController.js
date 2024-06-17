@@ -33,10 +33,10 @@ const purchaseController = {
         details,
         totalAmount,
         purchaseDate: new Date(),
-        purchaseStatus: purchaseStatus || false // Definir como falso se não for fornecido
+        purchaseStatus: purchaseStatus || false, // Definir como falso se não for fornecido
       });
       const savedPurchase = await newPurchase.save();
-      
+
       // Atualize o campo purchaseCount no documento Client
       await Client.findByIdAndUpdate(client, { $inc: { purchaseCount: 1 } });
 
@@ -142,7 +142,7 @@ const purchaseController = {
     }
     try {
       const purchases = await Purchase.find({ client: clientId }).sort({ purchaseDate: -1 });
-      if (purchases.length === 0) {
+      if (!purchases.length) {
         return res.status(404).json({ message: 'No purchases found for this client' });
       }
       res.status(200).json({ purchases });
@@ -150,7 +150,9 @@ const purchaseController = {
       console.error('Error getting purchases for client:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  }
+  },
+
 };
 
 module.exports = purchaseController;
+
