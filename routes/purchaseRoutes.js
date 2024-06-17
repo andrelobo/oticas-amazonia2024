@@ -5,11 +5,11 @@ const PurchaseController = require('../controllers/purchaseController');
 // const authenticateToken = require('../middlewares/authenticateToken');
 
 
-router.post('/',authenticateToken , PurchaseController.createPurchase);
+router.post('/' , PurchaseController.createPurchase);
 
 
 // Rota para obter detalhes de um usuário pelo ID
-router.get('/:id',authenticateToken, PurchaseController.getPurchaseById);
+router.get('/:id', PurchaseController.getPurchaseById);
 
 // Rota para atualizar os detalhes de um usuário pelo ID
 router.put('/:id', PurchaseController.updatePurchaseById);
