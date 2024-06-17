@@ -19,6 +19,7 @@ router.delete('/:id' , PurchaseController.deletePurchaseById);
 
 // Rota para listar todos os usuários
 router.get('/', PurchaseController.getAllPurchases);
+router.get('/client/:clientId', PurchaseController.getPurchasesByClientId);
 
 module.exports = router;
 
