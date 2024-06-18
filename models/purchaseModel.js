@@ -17,7 +17,7 @@ const purchaseSchema = new mongoose.Schema({
   },
   purchaseDate: {
     type: Date,
-    require: true
+    required: true  // Correto: required: true para definir como obrigatório
   },
   purchaseStatus: {
     type: Boolean,
