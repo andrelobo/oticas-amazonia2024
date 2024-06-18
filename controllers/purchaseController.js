@@ -23,27 +23,26 @@ const purchaseController = {
    * @returns {Promise<*>} Created purchase
    */
   async createPurchase(req, res) {
-    const { client, details, totalAmount, purchaseStatus } = req.body;
-    if (!client || !details || !totalAmount) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const { clientId, details, totalAmount, purchaseDate, purchaseStatus } = req.body;
+    
+    if (!clientId || !details || !totalAmount || !purchaseDate) {
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
+  
     try {
-      const newPurchase = new Purchase({
-        client,
+      const purchase = new Purchase({
+        client: clientId,
         details,
         totalAmount,
-        purchaseDate: new Date(),
-        purchaseStatus: purchaseStatus || false, // Definir como falso se não for fornecido
+        purchaseDate: new Date(purchaseDate), // Converta a string de data para um objeto Date, // Use a data fornecida pelo usuário
+        purchaseStatus: purchaseStatus || false
       });
-      const savedPurchase = await newPurchase.save();
-
-      // Atualize o campo purchaseCount no documento Client
-      await Client.findByIdAndUpdate(client, { $inc: { purchaseCount: 1 } });
-
-      res.status(201).json({ purchase: savedPurchase });
+  
+      const savedPurchase = await purchase.save();
+      res.status(201).json(savedPurchase);
     } catch (error) {
-      console.error('Error creating purchase:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Erro ao criar a compra:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   },
 
@@ -117,7 +116,7 @@ const purchaseController = {
     }
     try {
       const purchase = await Purchase.findByIdAndRemove(id);
-      if (purchase) {
+      if (purchase && purchase.client) {
         // Atualize o campo purchaseCount no documento Client
         await Client.findByIdAndUpdate(purchase.client, { $inc: { purchaseCount: -1 } });
       }
