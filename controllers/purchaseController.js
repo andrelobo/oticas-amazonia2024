@@ -34,8 +34,8 @@ const purchaseController = {
         client: clientId,
         details,
         totalAmount,
-        purchaseDate: new Date(purchaseDate), // Converta a string de data para um objeto Date, // Use a data fornecida pelo usuário
-        purchaseStatus: purchaseStatus || false
+        purchaseDate: new Date(purchaseDate),
+        purchaseStatus: purchaseStatus || false,
       });
   
       const savedPurchase = await purchase.save();
@@ -45,6 +45,35 @@ const purchaseController = {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   },
+  
+
+  /**
+   * @description Check for bugs such as null pointer references, unhandled exceptions, and more.
+   * If you don't see anything obvious, reply that things look good and that the user can reply with a stack trace to get more information.
+   */
+  async checkForBugs() {
+    // Check for null pointer references
+    if (!req || !req.body || !req.body.clientId || !req.body.details || !req.body.totalAmount || !req.body.purchaseDate) {
+      throw new Error('Requisição inválida');
+    }
+    
+    // Check for correct types
+    if (typeof req.body.clientId !== 'string' || typeof req.body.details !== 'string' || typeof req.body.totalAmount !== 'number' || typeof req.body.purchaseDate !== 'string') {
+      throw new Error('Tipo de dado inválido');
+    }
+    
+    // Check for correct format of purchaseDate
+    const purchaseDateParsed = new Date(req.body.purchaseDate);
+    if (isNaN(purchaseDateParsed.getTime())) {
+      throw new Error('Formato de data inválido');
+    }
+    
+    // Check if clientId already exists
+    const existingPurchase = await Purchase.findOne({ client: clientId });
+    if (existingPurchase) {
+      throw new Error('Cliente já possui uma compra');
+    }
+  }
 
   /**
    * @description Get purchase by id
