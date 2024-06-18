@@ -4,7 +4,10 @@ const Client = require('../models/clientModel'); // Certifique-se de importar o 
 const purchaseController = {
   async getAllPurchases(req, res) {
     try {
-      const purchases = await Purchase.find().sort({ purchaseDate: -1 }).populate('client');
+      const purchases = await Purchase.find().sort({ purchaseDate: -1 }).populate('client').exec();
+      if (!purchases) {
+        return res.status(404).json({ message: 'No purchases found' });
+      }
       res.status(200).json({ purchases });
     } catch (error) {
       console.error('Error getting all purchases:', error);
@@ -13,13 +16,10 @@ const purchaseController = {
   },
 
   async createPurchase(req, res) {
-    const { clientId, details, totalAmount, purchaseDate, purchaseStatus } = req.body;
-    
-    if (!clientId || !details || !totalAmount || !purchaseDate) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
-    }
-  
     try {
+      purchaseController.checkForBugs(req);
+
+      const { clientId, details, totalAmount, purchaseDate, purchaseStatus } = req.body;
       const purchase = new Purchase({
         client: clientId,
         details,
@@ -27,7 +27,7 @@ const purchaseController = {
         purchaseDate: new Date(purchaseDate),
         purchaseStatus: purchaseStatus || false,
       });
-  
+
       const savedPurchase = await purchase.save();
       res.status(201).json(savedPurchase);
     } catch (error) {
@@ -36,8 +36,7 @@ const purchaseController = {
     }
   },
   
-
-  async checkForBugs(req) {
+  checkForBugs(req) {
     if (!req || !req.body || !req.body.clientId || !req.body.details || !req.body.totalAmount || !req.body.purchaseDate) {
       throw new Error('Requisição inválida');
     }
@@ -51,8 +50,8 @@ const purchaseController = {
       throw new Error('Formato de data inválido');
     }
     
-    const existingPurchase = await Purchase.findOne({ client: req.body.clientId });
-    if (existingPurchase) {
+    const existingPurchase = Purchase.findOne({ client: req.body.clientId }).exec();
+    if (existingPurchase && existingPurchase.length > 0) {
       throw new Error('Cliente já possui uma compra');
     }
   },
@@ -63,7 +62,7 @@ const purchaseController = {
       return res.status(400).json({ error: 'ID is required' });
     }
     try {
-      const purchase = await Purchase.findById(id).populate('client');
+      const purchase = await Purchase.findById(id).populate('client').exec();
       if (!purchase) {
         return res.status(404).json({ error: 'Purchase not found' });
       }
@@ -77,25 +76,29 @@ const purchaseController = {
   async updatePurchaseById(req, res) {
     const { id } = req.params;
     const { client, details, totalAmount, purchaseDate, purchaseStatus } = req.body;
+    
     if (!id) {
-      return res.status(400).json({ error: 'ID is required' });
+        return res.status(400).json({ error: 'ID is required' });
     }
-    if (!client && !details && !totalAmount && !purchaseDate && purchaseStatus === undefined) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+
     try {
-      const purchase = await Purchase.findByIdAndUpdate(
-        id,
-        { client, details, totalAmount, purchaseDate, purchaseStatus },
-        { new: true }
-      );
-      if (!purchase) {
-        return res.status(404).json({ error: 'Purchase not found' });
-      }
-      res.status(200).json({ purchase });
+        const updateFields = {};
+        if (client !== undefined) updateFields.client = client;
+        if (details !== undefined) updateFields.details = details;
+        if (totalAmount !== undefined) updateFields.totalAmount = totalAmount;
+        if (purchaseDate !== undefined) updateFields.purchaseDate = purchaseDate;
+        if (purchaseStatus !== undefined) updateFields.purchaseStatus = purchaseStatus;
+
+        const purchase = await Purchase.findByIdAndUpdate(id, updateFields, { new: true }).exec();
+
+        if (!purchase) {
+            return res.status(404).json({ error: 'Purchase not found' });
+        }
+
+        res.status(200).json({ purchase });
     } catch (error) {
-      console.error('Error updating purchase by id:', error);
-      res.status(500).json({ error: 'Internal server error' });
+        console.error('Error updating purchase by id:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -105,10 +108,10 @@ const purchaseController = {
       return res.status(400).json({ error: 'ID is required' });
     }
     try {
-      const purchase = await Purchase.findByIdAndRemove(id);
+      const purchase = await Purchase.findByIdAndRemove(id).exec();
       if (purchase && purchase.client) {
         // Atualize o campo purchaseCount no documento Client
-        await Client.findByIdAndUpdate(purchase.client, { $inc: { purchaseCount: -1 } });
+        await Client.findByIdAndUpdate(purchase.client, { $inc: { purchaseCount: -1 } }).exec();
       }
       res.status(200).json({ message: 'Purchase deleted successfully' });
     } catch (error) {
@@ -123,7 +126,7 @@ const purchaseController = {
       return res.status(400).json({ error: 'Client ID is required' });
     }
     try {
-      const purchases = await Purchase.find({ client: clientId }).sort({ purchaseDate: -1 });
+      const purchases = await Purchase.find({ client: clientId }).sort({ purchaseDate: -1 }).exec();
       if (!purchases.length) {
         return res.status(404).json({ message: 'No purchases found for this client' });
       }
