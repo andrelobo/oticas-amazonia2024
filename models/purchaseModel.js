@@ -17,7 +17,7 @@ const purchaseSchema = new mongoose.Schema({
   },
   purchaseDate: {
     type: Date,
-    required: true // Certifique-se de que este campo é obrigatório
+    require: true
   },
   purchaseStatus: {
     type: Boolean,
