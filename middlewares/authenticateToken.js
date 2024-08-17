@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 function authenticateToken(req, res, next) {
   const token = req.headers['authorization'];
+  console.log('Token not found');
   if (!token) return res.sendStatus(401); // Unauthorized
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
