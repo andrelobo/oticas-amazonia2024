@@ -2,13 +2,26 @@ const Purchase = require('../models/purchaseModel');
 const Client = require('../models/clientModel');
 
 const purchaseController = {
+  /**
+   * @swagger
+   * /purchases:
+   *   get:
+   *     summary: Retrieve all purchases
+   *     responses:
+   *       200:
+   *         description: A list of purchases
+   *       404:
+   *         description: No purchases found
+   *       500:
+   *         description: Internal server error
+   */
   async getAllPurchases(req, res) {
     try {
       const purchases = await Purchase.find()
         .sort({ purchaseDate: -1 })
         .populate('client')
         .exec();
-        
+      
       if (!purchases) {
         return res.status(404).json({ message: 'No purchases found' });
       }
@@ -20,6 +33,52 @@ const purchaseController = {
     }
   },
 
+  /**
+   * @swagger
+   * /purchases:
+   *   post:
+   *     summary: Create a new purchase
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               clientId:
+   *                 type: string
+   *               endereco:
+   *                 type: string
+   *               cpf:
+   *                 type: string
+   *               paymentMethod:
+   *                 type: string
+   *               oculos:
+   *                 type: string
+   *               armacaoRF:
+   *                 type: string
+   *               lenteRF:
+   *                 type: string
+   *               outros:
+   *                 type: string
+   *               totalAmount:
+   *                 type: number
+   *               sinal:
+   *                 type: number
+   *               purchaseDate:
+   *                 type: string
+   *                 format: date-time
+   *               deliveryDate:
+   *                 type: string
+   *                 format: date-time
+   *               purchaseStatus:
+   *                 type: boolean
+   *     responses:
+   *       201:
+   *         description: Purchase created successfully
+   *       500:
+   *         description: Internal server error
+   */
   async createPurchase(req, res) {
     try {
       purchaseController.checkForBugs(req);
@@ -36,7 +95,7 @@ const purchaseController = {
         totalAmount, 
         sinal, 
         purchaseDate, 
-        deliveryDate, // Novo campo
+        deliveryDate, 
         purchaseStatus 
       } = req.body;
 
@@ -52,41 +111,42 @@ const purchaseController = {
         totalAmount,
         sinal: sinal || 0,
         purchaseDate: new Date(purchaseDate),
-        deliveryDate: new Date(deliveryDate), // Novo campo
+        deliveryDate: new Date(deliveryDate),
         purchaseStatus: purchaseStatus || false,
       });
 
       const savedPurchase = await purchase.save();
       res.status(201).json(savedPurchase);
     } catch (error) {
-      console.error('Erro ao criar a compra:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      console.error('Error creating purchase:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
+
+  // The following methods should have similar Swagger comments added.
   
-  checkForBugs(req) {
-    if (!req || !req.body || !req.body.clientId || !req.body.purchaseDate || !req.body.paymentMethod || !req.body.totalAmount) {
-      throw new Error('Requisição inválida');
-    }
-    
-    const { clientId, purchaseDate, paymentMethod, totalAmount } = req.body;
-    
-    // Validação de tipos de dados
-    if (typeof clientId !== 'string' || typeof purchaseDate !== 'string' || typeof paymentMethod !== 'string' || typeof totalAmount !== 'number') {
-      throw new Error('Tipo de dado inválido');
-    }
-
-    const purchaseDateParsed = new Date(purchaseDate);
-    if (isNaN(purchaseDateParsed.getTime())) {
-      throw new Error('Formato de data inválido');
-    }
-
-    const deliveryDateParsed = new Date(req.body.deliveryDate);
-    if (req.body.deliveryDate && isNaN(deliveryDateParsed.getTime())) {
-      throw new Error('Formato de data de entrega inválido');
-    }
-  },
-
+  /**
+   * @swagger
+   * /purchases/{id}:
+   *   get:
+   *     summary: Retrieve a purchase by ID
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: The ID of the purchase
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A single purchase
+   *       400:
+   *         description: ID is required
+   *       404:
+   *         description: Purchase not found
+   *       500:
+   *         description: Internal server error
+   */
   async getPurchaseById(req, res) {
     const { id } = req.params;
     if (!id) {
@@ -104,6 +164,63 @@ const purchaseController = {
     }
   },
 
+  /**
+   * @swagger
+   * /purchases/{id}:
+   *   put:
+   *     summary: Update a purchase by ID
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: The ID of the purchase
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               client:
+   *                 type: string
+   *               endereco:
+   *                 type: string
+   *               cpf:
+   *                 type: string
+   *               paymentMethod:
+   *                 type: string
+   *               oculos:
+   *                 type: string
+   *               armacaoRF:
+   *                 type: string
+   *               lenteRF:
+   *                 type: string
+   *               outros:
+   *                 type: string
+   *               totalAmount:
+   *                 type: number
+   *               sinal:
+   *                 type: number
+   *               purchaseDate:
+   *                 type: string
+   *                 format: date-time
+   *               deliveryDate:
+   *                 type: string
+   *                 format: date-time
+   *               purchaseStatus:
+   *                 type: boolean
+   *     responses:
+   *       200:
+   *         description: Purchase updated successfully
+   *       400:
+   *         description: ID is required
+   *       404:
+   *         description: Purchase not found
+   *       500:
+   *         description: Internal server error
+   */
   async updatePurchaseById(req, res) {
     const { id } = req.params;
     const {
@@ -118,7 +235,7 @@ const purchaseController = {
       totalAmount, 
       sinal, 
       purchaseDate, 
-      deliveryDate, // Novo campo
+      deliveryDate, 
       purchaseStatus 
     } = req.body;
 
@@ -139,7 +256,7 @@ const purchaseController = {
       if (totalAmount !== undefined) updateFields.totalAmount = totalAmount;
       if (sinal !== undefined) updateFields.sinal = sinal;
       if (purchaseDate !== undefined) updateFields.purchaseDate = purchaseDate;
-      if (deliveryDate !== undefined) updateFields.deliveryDate = new Date(deliveryDate); // Novo campo
+      if (deliveryDate !== undefined) updateFields.deliveryDate = new Date(deliveryDate);
       if (purchaseStatus !== undefined) updateFields.purchaseStatus = purchaseStatus;
 
       const purchase = await Purchase.findByIdAndUpdate(id, updateFields, { new: true }).exec();
@@ -155,6 +272,26 @@ const purchaseController = {
     }
   },
 
+  /**
+   * @swagger
+   * /purchases/{id}:
+   *   delete:
+   *     summary: Delete a purchase by ID
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         description: The ID of the purchase
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Purchase deleted successfully
+   *       400:
+   *         description: ID is required
+   *       500:
+   *         description: Internal server error
+   */
   async deletePurchaseById(req, res) {
     const { id } = req.params;
     if (!id) {
@@ -172,6 +309,28 @@ const purchaseController = {
     }
   },
 
+  /**
+   * @swagger
+   * /purchases/client/{clientId}:
+   *   get:
+   *     summary: Retrieve purchases by client ID
+   *     parameters:
+   *       - name: clientId
+   *         in: path
+   *         required: true
+   *         description: The ID of the client
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A list of purchases for the client
+   *       400:
+   *         description: Client ID is required
+   *       404:
+   *         description: No purchases found for this client
+   *       500:
+   *         description: Internal server error
+   */
   async getPurchasesByClientId(req, res) {
     const { clientId } = req.params;
     if (!clientId) {
