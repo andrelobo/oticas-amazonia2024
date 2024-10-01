@@ -68,7 +68,7 @@ app.get('/', (req, res) => {
     }
     res.send('Bem-vindo ao nosso aplicativo!');
 });
-//Quando eu uso app.use no app.js ?
+
 //Rotas de Usuários
 app.use('/api/users', userRoutes);
 // Mount the individual methods from the beverageController module as middleware

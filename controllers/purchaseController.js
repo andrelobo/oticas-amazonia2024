@@ -81,12 +81,12 @@ const purchaseController = {
    */
   async createPurchase(req, res) {
     try {
-      purchaseController.checkForBugs(req);
+      purchaseController ;
 
       const {
         clientId, 
         endereco, 
-        cpf, 
+        cpf, /*  */
         paymentMethod, 
         oculos, 
         armacaoRF, 
